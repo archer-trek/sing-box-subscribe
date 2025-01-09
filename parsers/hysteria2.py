@@ -1,5 +1,7 @@
-import tool,re
+import subscribe.tool as tool
+import re
 from urllib.parse import urlparse, parse_qs, unquote
+
 
 def parse(data):
     info = data[:]
@@ -9,7 +11,7 @@ def parse(data):
         for k, v in parse_qs(server_info.query).items()
     )
     if server_info.path:
-      server_info = server_info._replace(netloc=server_info.netloc + server_info.path, path="")
+        server_info = server_info._replace(netloc=server_info.netloc + server_info.path, path="")
     port_match = re.search(r':(\d+)', server_info.netloc)
     ports_match = re.search(r',(\d+-\d+)', server_info.netloc)
     node = {

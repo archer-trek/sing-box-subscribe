@@ -1,5 +1,8 @@
-import tool,re
-from urllib.parse import urlparse,unquote
+import subscribe.tool as tool
+import re
+from urllib.parse import urlparse, unquote
+
+
 def parse(data):
     info = data[:]
     server_info = urlparse(info)
@@ -19,6 +22,6 @@ def parse(data):
         }
     }
     if remark[0].count("@") == 2:
-        node ['username'] = _netloc[0].split(":")[0]
-        node ['password'] = _netloc[0].split(":")[1]
+        node['username'] = _netloc[0].split(":")[0]
+        node['password'] = _netloc[0].split(":")[1]
     return (node)

@@ -1,12 +1,15 @@
-import tool,re
-from urllib.parse import urlparse,unquote
+import subscribe.tool as tool
+import re
+from urllib.parse import urlparse, unquote
+
+
 def parse(data):
     info = data[:]
     server_info = urlparse(info)
     if server_info.path:
-      server_info = server_info._replace(netloc=server_info.netloc + server_info.path, path="")
+        server_info = server_info._replace(netloc=server_info.netloc + server_info.path, path="")
     node = {
-        'tag': unquote(server_info.fragment)  or tool.genName()+'_socks',
+        'tag': unquote(server_info.fragment) or tool.genName()+'_socks',
         'type': 'socks',
         "version": "5",
         'udp_over_tcp': {}

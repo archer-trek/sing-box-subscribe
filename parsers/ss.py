@@ -1,16 +1,21 @@
-import tool,json,re,urllib
+import subscribe.tool as tool
+import json
+import re
+import urllib
 from urllib.parse import parse_qs
+
+
 def parse(data):
     param = data[5:]
     if not param or param.isspace():
         return None
     node = {
-        'tag':tool.genName()+'_shadowsocks',
-        'type':'shadowsocks',
-        'server':None,
-        'server_port':0,
-        'method':None,
-        'password':None
+        'tag': tool.genName()+'_shadowsocks',
+        'type': 'shadowsocks',
+        'server': None,
+        'server_port': 0,
+        'method': None,
+        'password': None
     }
     flag = 0
     if param.find('uot') > -1:
@@ -45,9 +50,11 @@ def parse(data):
     elif param.find('v2ray-plugin') > -1:
         if param.find('&', param.find('v2ray-plugin')) > -1:
             try:
-                plugin = tool.b64Decode(param[param.find('v2ray-plugin')+13:param.find('&', param.find('v2ray-plugin'))]).decode('utf-8')
+                plugin = tool.b64Decode(param[param.find('v2ray-plugin')+13:param.find('&',
+                                        param.find('v2ray-plugin'))]).decode('utf-8')
             except:
-                plugin = urllib.parse.unquote(param[param.find('v2ray-plugin')+15:param.find('&', param.find('v2ray-plugin'))])
+                plugin = urllib.parse.unquote(
+                    param[param.find('v2ray-plugin')+15:param.find('&', param.find('v2ray-plugin'))])
                 pairs = [pair.split('=') for pair in plugin.split(';') if '=' in pair and pair.count('=') == 1]
                 plugin = str({key: value for key, value in pairs})
         else:
@@ -87,11 +94,11 @@ def parse(data):
             node['multiplex']['min_streams'] = int(smux_dict['min-streams'])
         if smux_dict.get('padding') == 'True':
             node['multiplex']['padding'] = True
-    try: #fuck
+    try:  # fuck
         param = param.split('?')[0]
-        matcher = tool.b64Decode(param) #保留'/'测试能不能解码
+        matcher = tool.b64Decode(param)  # 保留'/'测试能不能解码
     except:
-        param = param.split('/')[0].split('?')[0] #不能解码说明'/'不是base64内容
+        param = param.split('/')[0].split('?')[0]  # 不能解码说明'/'不是base64内容
     if param.find('@') > -1:
         matcher = re.match(r'(.*?)@(.*):(.*)', param)
         if matcher:
@@ -101,19 +108,19 @@ def parse(data):
         else:
             return None
         try:
-          matcher = re.match(r'(.*?):(.*)', tool.b64Decode(param).decode('utf-8'))
-          if matcher:
-              node['method'] = matcher.group(1)
-              node['password'] = matcher.group(2)
-          else:
-              return None
+            matcher = re.match(r'(.*?):(.*)', tool.b64Decode(param).decode('utf-8'))
+            if matcher:
+                node['method'] = matcher.group(1)
+                node['password'] = matcher.group(2)
+            else:
+                return None
         except:
-          matcher = re.match(r'(.*?):(.*)', param)
-          if matcher:
-              node['method'] = matcher.group(1)
-              node['password'] = matcher.group(2)
-          else:
-              return None
+            matcher = re.match(r'(.*?):(.*)', param)
+            if matcher:
+                node['method'] = matcher.group(1)
+                node['password'] = matcher.group(2)
+            else:
+                return None
     else:
         matcher = re.match(r'(.*?):(.*)@(.*):(.*)', tool.b64Decode(param).decode('utf-8'))
         if matcher:
@@ -128,19 +135,20 @@ def parse(data):
     if param2.find('shadow-tls') > -1:
         flag = 1
         if param2.find('&', param2.find('shadow-tls')) > -1:
-            plugin = tool.b64Decode(param2[param2.find('shadow-tls')+11:param2.find('&', param2.find('shadow-tls'))].split('#')[0]).decode('utf-8')
+            plugin = tool.b64Decode(param2[param2.find('shadow-tls')+11:param2.find('&',
+                                    param2.find('shadow-tls'))].split('#')[0]).decode('utf-8')
         else:
             plugin = tool.b64Decode(param2[param2.find('shadow-tls')+11:].split('#')[0]).decode('utf-8')
-        plugin = eval(plugin.replace('true','True'))
+        plugin = eval(plugin.replace('true', 'True'))
         node['detour'] = node['tag']+'_shadowtls'
         node_tls = {
-            'tag':node['detour'],
-            'type':'shadowtls',
-            'server':node['server'],
-            'server_port':node['server_port'],
-            'version':int(plugin.get('version', '1')),
-            'password':plugin.get('password', ''),
-            'tls':{
+            'tag': node['detour'],
+            'type': 'shadowtls',
+            'server': node['server'],
+            'server_port': node['server_port'],
+            'version': int(plugin.get('version', '1')),
+            'password': plugin.get('password', ''),
+            'tls': {
                 'enabled': True,
                 'server_name': plugin.get('host', '')
             }
@@ -150,7 +158,7 @@ def parse(data):
         if plugin.get('port'):
             node_tls['server_port'] = int(plugin['port'])
         if plugin.get('fp'):
-            node_tls['tls']['utls']={
+            node_tls['tls']['utls'] = {
                 'enabled': True,
                 'fingerprint': plugin.get('fp')
             }
@@ -161,6 +169,6 @@ def parse(data):
     elif node['method'] == 'xchacha20-poly1305':
         node['method'] = 'xchacha20-ietf-poly1305'
     if flag:
-        return node,node_tls
+        return node, node_tls
     else:
         return node

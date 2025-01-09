@@ -1,11 +1,15 @@
-import tool,json,re
+import subscribe.tool as tool
+import json
+import re
 from urllib.parse import urlparse, parse_qs
+
+
 def parse(data):
     info = data[8:]
     if not info or info.isspace():
         return None
     try:
-        if info.find('?') > -1: #fuck奇葩的URI格式
+        if info.find('?') > -1:  # fuck奇葩的URI格式
             server_info = urlparse(info)
             netquery = dict(
                 (k, v if len(v) > 1 else v[0])
@@ -22,11 +26,11 @@ def parse(data):
                 'server_port': int(_path[1].split(":")[1]),
                 'uuid': _path[0].split(":")[-1],
                 'security': _path[0].split(":")[0] if ':' in _path[0] else 'auto',
-                'alter_id': int(netquery.get('alterId','0')),
+                'alter_id': int(netquery.get('alterId', '0')),
                 'packet_encoding': 'xudp'
             }
             if (netquery.get('tls') and netquery['tls'] != '') or (netquery.get('security') == 'tls'):
-                node['tls']={
+                node['tls'] = {
                     'enabled': True,
                     'insecure': True,
                     'server_name': netquery.get('peer', '')
@@ -48,7 +52,7 @@ def parse(data):
                         'Host': netquery.get('host', '')  # 如果 'obfsParam' 不存在或解析失败，使用 'host' 字段
                     }
                 }
-                
+
                 obfs_param = netquery.get('obfsParam', '')
                 try:
                     obfs_param_json = json.loads(obfs_param)
@@ -80,7 +84,7 @@ def parse(data):
     if node['security'] == 'gun':
         node['security'] = 'auto'
     if 'tls' in item and (item['tls'] != '' and item['tls'] != 'none'):
-        node['tls']={
+        node['tls'] = {
             'enabled': True,
             'insecure': True,
             'server_name': item.get('host', '') if item.get("net") not in ['h2', 'http'] else ''
@@ -97,7 +101,7 @@ def parse(data):
     if item.get("net"):
         if item['net'] in ['h2', 'http']:
             node['transport'] = {
-                'type':'http'
+                'type': 'http'
             }
             if item.get('headers'):
                 node['transport']['headers'] = item['headers']
@@ -115,11 +119,11 @@ def parse(data):
             }
             if item.get('host'):
                 node['transport'] = {
-                'type': 'ws',
-                'headers': {
-                    'Host': item['host']
+                    'type': 'ws',
+                    'headers': {
+                        'Host': item['host']
+                    }
                 }
-            }
             if item.get('path'):
                 matches = re.search(r'\?ed=(\d+)$', item['path'])
                 node['transport']['path'] = item['path'].rsplit("?ed=", 1)[0] if matches else item['path']
@@ -128,12 +132,12 @@ def parse(data):
                     node['transport']['max_early_data'] = int(item['path'].rsplit("?ed=", 1)[1])
         elif item['net'] == 'quic':
             node['transport'] = {
-                'type':'quic'
+                'type': 'quic'
             }
         elif item['net'] == 'grpc':
             node['transport'] = {
-                'type':'grpc',
-                'service_name':item.get('path', '')
+                'type': 'grpc',
+                'service_name': item.get('path', '')
             }
     if item.get('protocol') in ['smux', 'yamux', 'h2mux']:
         node['multiplex'] = {

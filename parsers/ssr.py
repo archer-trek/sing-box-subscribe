@@ -1,4 +1,6 @@
-import tool
+import subscribe.tool as tool
+
+
 def parse(data):
     info = data[6:]
     if not info or info.isspace():
@@ -9,7 +11,7 @@ def parse(data):
         proxy_str = info
     i = 0
     parts = proxy_str.split(':')
-    if len(parts) == 5: #fuck
+    if len(parts) == 5:  # fuck
         i = 1
         next_part, _, proxy_str = proxy_str.partition('=')
         parts.append(proxy_str)
@@ -18,8 +20,8 @@ def parse(data):
                 parts[5] = parts[4].split(ssr_obfs)[-1]
                 parts[4] = ssr_obfs
     node = {
-        'tag':None,
-        'type':'shadowsocksr',
+        'tag': None,
+        'type': 'shadowsocksr',
         'server': parts[0],
         'server_port': int(parts[1]),
         'protocol': parts[2],
@@ -30,10 +32,10 @@ def parse(data):
     if i == 0:
         node['password'] = tool.b64Decode(password_params[0]).decode('utf-8')
         params = password_params[1].split('&')
-    else: #fuck
+    else:  # fuck
         node['password'] = tool.b64Decode(password_params[0].split('remarks')[0]).decode('utf-8')
         params = password_params[-1].split(password_params[0].split('remarks')[0])[-1].split('&')
-    pdict = {'obfsparam':'obfs_param','protoparam':'protocol_param','remarks':'tag'}
+    pdict = {'obfsparam': 'obfs_param', 'protoparam': 'protocol_param', 'remarks': 'tag'}
     for p in params:
         key_value = p.split('=')
         keyname = key_value[0]

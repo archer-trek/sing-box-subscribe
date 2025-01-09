@@ -1,5 +1,8 @@
-import tool,re
-from urllib.parse import urlparse, parse_qs, unquote
+import subscribe.tool as tool
+import re
+from urllib.parse import urlparse, parse_qs
+
+
 def parse(data):
     info = data[:]
     server_info = urlparse(info)
@@ -21,7 +24,7 @@ def parse(data):
         _netloc = netloc.rsplit("@", 1)
         server_port = _netloc[1]
     else:
-       server_port = netloc
+        server_port = netloc
     node = {
         'tag': remark or tool.genName()+'_http',
         'type': 'http',

@@ -1,10 +1,13 @@
-import tool,re
+import subscribe.tool as tool
+import re
 from urllib.parse import urlparse, parse_qs, unquote
+
+
 def parse(data):
     info = data[:]
     server_info = urlparse(info)
     if server_info.path:
-      server_info = server_info._replace(netloc=server_info.netloc + server_info.path, path="")
+        server_info = server_info._replace(netloc=server_info.netloc + server_info.path, path="")
     if '@' in server_info.netloc:
         _netloc = server_info.netloc.rsplit("@", 1)
     else:
@@ -38,24 +41,24 @@ def parse(data):
     if netquery.get('type'):
         if netquery['type'] == 'h2':
             node['transport'] = {
-                'type':'http',
-                'host':netquery.get('host', node['server']),
-                'path':netquery.get('path', '/')
+                'type': 'http',
+                'host': netquery.get('host', node['server']),
+                'path': netquery.get('path', '/')
             }
         if netquery['type'] == 'ws':
             matches = re.search(r'\?ed=(\d+)$', netquery.get('path', '/'))
             if netquery.get('host'):
                 node['transport'] = {
-                     'type':'ws',
-                     'path':netquery.get('path', '/').rsplit("?ed=", 1)[0] if matches else netquery.get('path', '/'),
-                     'headers': {
-                         'Host': netquery.get('host')
+                    'type': 'ws',
+                    'path': netquery.get('path', '/').rsplit("?ed=", 1)[0] if matches else netquery.get('path', '/'),
+                    'headers': {
+                        'Host': netquery.get('host')
                     }
                 }
         elif netquery['type'] == 'grpc':
             node['transport'] = {
-                'type':'grpc',
-                'service_name':netquery.get('serviceName', '')
+                'type': 'grpc',
+                'service_name': netquery.get('serviceName', '')
             }
     if netquery.get('protocol') in ['smux', 'yamux', 'h2mux']:
         node['multiplex'] = {

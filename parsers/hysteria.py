@@ -1,5 +1,7 @@
-import tool,re
+import subscribe.tool as tool
+import re
 from urllib.parse import urlparse, parse_qs, unquote
+
 
 def parse(data):
     info = data[:]
@@ -12,7 +14,7 @@ def parse(data):
         'tag': unquote(server_info.fragment) or tool.genName()+'_hysteria',
         'type': 'hysteria',
         'server': re.sub(r"\[|\]", "", server_info.netloc.rsplit(":", 1)[0]),
-        'server_port': int((server_info.netloc.rsplit(":", 1)[1]).split(",", 1)[0]), #fuck all
+        'server_port': int((server_info.netloc.rsplit(":", 1)[1]).split(",", 1)[0]),  # fuck all
         'up_mbps': int(re.search(r'\d+', netquery.get('upmbps', '10')).group()),
         'down_mbps': int(re.search(r'\d+', netquery.get('downmbps', '100')).group()),
         'auth_str': netquery.get('auth', ''),

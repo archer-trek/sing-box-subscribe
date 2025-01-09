@@ -1,5 +1,8 @@
-import tool,re
+import subscribe.tool as tool
+import re
 from urllib.parse import urlparse, parse_qs, unquote
+
+
 def parse(data):
     info = data[:]
     server_info = urlparse(info)
@@ -27,7 +30,8 @@ def parse(data):
         node['mtu'] = int(netquery['mtu'])
     if netquery.get('reserved'):
         reserved_value = netquery.get('reserved')
-        node['peers'][0]['reserved'] = [int(val) for val in reserved_value.split(",")] if ',' in reserved_value else reserved_value
+        node['peers'][0]['reserved'] = [int(val) for val in reserved_value.split(",")
+                                        ] if ',' in reserved_value else reserved_value
     ip_value = netquery.get('ip') or netquery.get('address')
     if ',' in ip_value:
         ipv4_value, ipv6_value = ip_value.split(",", 1)
