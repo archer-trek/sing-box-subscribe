@@ -32,17 +32,29 @@ def gen_config(token: str) -> dict:
 
     nodes = provider.load_nodes(token_config['providers'])
 
-    config_template = __load_config_template(token_config['config_template'])
+    config_template = __load_config_template(token, token_config['config_template'])
 
     return __render_config(config_template, nodes)
 
 
-def __load_config_template(conf: dict) -> dict:
-    content = tool.http_get_content(conf['download_url'])
-    if not content:
-        return {}
+def __load_config_template(token: str, conf: dict) -> dict:
+    if conf['type'] == 'remote':
+        content = tool.http_get_content(conf['download_url'])
+        if not content:
+            return {}
+        return json.loads(content)
 
-    return json.loads(content)
+    elif conf['type'] == 'local':
+        file_path = conf['local_file_path']
+        # check if file_path is absolute path
+        if not file_path.startswith('/'):
+            file_path = f'{__get_dir_of_token(token)}/{file_path}'
+        if not os.path.exists(file_path):
+            return {}
+        with open(file_path, 'r') as f:
+            return json.load(f)
+
+    return {}
 
 
 def __render_config(config_template: dict, nodes: list[dict]) -> dict:
