@@ -1,7 +1,7 @@
 import base64
 import random
 import string
-from time import sleep
+from time import sleep, time
 import requests
 import logging
 
@@ -38,11 +38,15 @@ def http_get_content(url, user_agent=None, retry_times=5) -> str:
 
 def __http_get_content(url, headers):
     try:
+        start_time = time()
         response = requests.get(url, headers=headers, timeout=180)
+        cost_time = int((time() - start_time) * 1000)
         if response.status_code == 200:
+            logging.info('http get %s cost time: %s ms', url, cost_time)
             return response.text
         else:
-            logging.error('http get %s failed, code %s, %s', url, response.status_code, response.text)
+            logging.error('http get %s failed, cost time: %s ms, code %s, %s',
+                          url, cost_time, response.status_code, response.text)
             return None
     except Exception as e:
         logging.error('http get %s failed, %s', url, e)
