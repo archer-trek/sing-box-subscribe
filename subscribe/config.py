@@ -38,12 +38,10 @@ def gen_config(token: str) -> dict:
 
 
 def __load_config_template(token: str, conf: dict) -> dict:
-    if conf['type'] == 'remote':
-        content = tool.http_get_content(conf['download_url'])
-        if not content:
-            return {}
-        return json.loads(content)
+    file_content = ""
 
+    if conf['type'] == 'remote':
+        file_content = tool.http_get_content(conf['download_url'])
     elif conf['type'] == 'local':
         file_path = conf['local_file_path']
         # check if file_path is absolute path
@@ -52,9 +50,23 @@ def __load_config_template(token: str, conf: dict) -> dict:
         if not os.path.exists(file_path):
             return {}
         with open(file_path, 'r') as f:
-            return json.load(f)
+            file_content = f.read()
+    else:
+        return {}
 
-    return {}
+    if not file_content:
+        return {}
+
+    if conf['regex_replace']:
+        for regex_replace in conf['regex_replace']:
+            from_pattern = regex_replace['from']
+            to_pattern = regex_replace['to']
+            if not from_pattern or not to_pattern:
+                continue
+
+            file_content = re.sub(from_pattern, to_pattern, file_content)
+
+    return json.loads(file_content)
 
 
 def __render_config(config_template: dict, nodes: list[dict]) -> dict:
