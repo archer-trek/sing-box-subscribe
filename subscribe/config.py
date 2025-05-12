@@ -57,8 +57,9 @@ def __load_config_template(token: str, conf: dict) -> dict:
     if not file_content:
         return {}
 
-    if conf['regex_replace']:
-        for regex_replace in conf['regex_replace']:
+    replaces = conf.get('regex_replace')
+    if replaces:
+        for regex_replace in replaces:
             from_pattern = regex_replace['from']
             to_pattern = regex_replace['to']
             if not from_pattern or not to_pattern:
