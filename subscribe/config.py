@@ -30,7 +30,7 @@ def gen_config(token: str) -> dict:
     if not token_config:
         return {}
 
-    nodes = provider.load_nodes(token_config['providers'])
+    nodes = provider.load_nodes(token_config['providers'], __get_dir_of_token(token))
 
     config_template = __load_config_template(token, token_config['config_template'])
 
