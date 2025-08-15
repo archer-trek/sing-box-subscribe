@@ -19,6 +19,7 @@ provider format:
 """
 import logging
 import re
+import json
 
 import yaml
 
@@ -27,28 +28,43 @@ from subscribe import tool
 from subscribe.clash2base64 import clash2v2ray
 
 
-def load_nodes(providers: list[dict]) -> list[dict]:
+def load_nodes(providers: list[dict], token_dir: str) -> list[dict]:
     nodes = []
     for provider in providers:
-        nodes.extend(__load_nodes(provider))
+        nodes.extend(__load_nodes(provider, token_dir))
     return nodes
 
 
-def __load_nodes(provider: dict) -> list[dict]:
-    content = tool.http_get_content(provider['download_url'], provider.get('download_ua'))
-    if not content:
-        logging.error('load nodes from %s failed', provider['download_url'])
-        return []
+def __load_nodes(provider: dict, token_dir: str) -> list[dict]:
+    nodes = []
 
-    raw_proxies = None
-    if 'proxies' in content:
-        # maybe it's clash yaml config
-        config = yaml.safe_load(content)
-        raw_proxies = [clash2v2ray(p) for p in config['proxies']]
+    if provider['type'] == 'remote':
+        content = tool.http_get_content(provider['download_url'], provider.get('download_ua'))
+        if not content:
+            logging.error('load nodes from %s failed', provider['download_url'])
+            return []
+
+        raw_proxies = None
+        if 'proxies' in content:
+            # maybe it's clash yaml config
+            config = yaml.safe_load(content)
+            raw_proxies = [clash2v2ray(p) for p in config['proxies']]
+        else:
+            raw_proxies = content.splitlines()
+
+        nodes = __parse_proxies(raw_proxies)
+
+    elif provider['type'] == 'local':
+        file_path = provider['local_file_path']
+        # check if file_path is absolute path
+        if not file_path.startswith('/'):
+            file_path = f'{token_dir}/{file_path}'
+
+        with open(file_path, 'r') as f:
+            nodes = json.load(f)['outbounds']
     else:
-        raw_proxies = content.splitlines()
+        raise ValueError('Invalid provider type')
 
-    nodes = __parse_proxies(raw_proxies)
     nodes = __filter_nodes(nodes, provider.get('excludes'), provider.get('exclude_protocols'))
     nodes = __rename_nodes(nodes, provider.get('outbound_override'))
     return nodes
