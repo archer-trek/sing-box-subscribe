@@ -72,13 +72,13 @@ def __load_config_template(token: str, conf: dict) -> dict:
 
 def __render_config(config_template: dict, nodes: list[dict]) -> dict:
     outbounds = config_template.get("outbounds", [])
+    direct_tag = __ensure_direct_outbound(outbounds)
 
     for outbound in outbounds:
         if outbound["type"] not in {"selector", "urltest"}:
             continue
 
         group_outbounds = outbound["outbounds"]
-
         new_group_outbounds = []
         for tag in group_outbounds:
             tag = tag.strip()
@@ -88,10 +88,25 @@ def __render_config(config_template: dict, nodes: list[dict]) -> dict:
                 for node in nodes:
                     if re.search(pattern, node["tag"]):
                         new_group_outbounds.append(node["tag"])
-            else:
+            elif tag:
                 new_group_outbounds.append(tag)
 
+        if not new_group_outbounds:
+            new_group_outbounds.append(direct_tag)
         outbound["outbounds"] = new_group_outbounds
 
     outbounds.extend(nodes)
     return config_template
+
+
+def __ensure_direct_outbound(outbounds: list[dict]) -> str:
+    for outbound in outbounds:
+        if outbound.get("type") == "direct":
+            return outbound["tag"]
+
+    direct_outbound = {
+        "type": "direct",
+        "tag": "direct",
+    }
+    outbounds.append(direct_outbound)
+    return direct_outbound["tag"]
