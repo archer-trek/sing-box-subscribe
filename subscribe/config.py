@@ -13,15 +13,15 @@ def set_data_dir(data_dir: str):
 
 
 def __get_dir_of_token(token: str) -> str:
-    return f'{__DATA_DIR}/tokens/{token}'
+    return f"{__DATA_DIR}/tokens/{token}"
 
 
 def __load_config_of_token(token: str) -> dict:
-    fp = f'{__get_dir_of_token(token)}/config.json'
+    fp = f"{__get_dir_of_token(token)}/config.json"
     if not os.path.exists(fp):
         return {}
 
-    with open(f'{__get_dir_of_token(token)}/config.json', 'r') as f:
+    with open(f"{__get_dir_of_token(token)}/config.json", "r") as f:
         return json.load(f)
 
 
@@ -30,9 +30,9 @@ def gen_config(token: str) -> dict:
     if not token_config:
         return {}
 
-    nodes = provider.load_nodes(token_config['providers'], __get_dir_of_token(token))
+    nodes = provider.load_nodes(token_config["providers"], __get_dir_of_token(token))
 
-    config_template = __load_config_template(token, token_config['config_template'])
+    config_template = __load_config_template(token, token_config["config_template"])
 
     return __render_config(config_template, nodes)
 
@@ -40,16 +40,16 @@ def gen_config(token: str) -> dict:
 def __load_config_template(token: str, conf: dict) -> dict:
     file_content = ""
 
-    if conf['type'] == 'remote':
-        file_content = tool.http_get_content(conf['download_url'])
-    elif conf['type'] == 'local':
-        file_path = conf['local_file_path']
+    if conf["type"] == "remote":
+        file_content = tool.http_get_content(conf["download_url"])
+    elif conf["type"] == "local":
+        file_path = conf["local_file_path"]
         # check if file_path is absolute path
-        if not file_path.startswith('/'):
-            file_path = f'{__get_dir_of_token(token)}/{file_path}'
+        if not file_path.startswith("/"):
+            file_path = f"{__get_dir_of_token(token)}/{file_path}"
         if not os.path.exists(file_path):
             return {}
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             file_content = f.read()
     else:
         return {}
@@ -57,11 +57,11 @@ def __load_config_template(token: str, conf: dict) -> dict:
     if not file_content:
         return {}
 
-    replaces = conf.get('regex_replace')
+    replaces = conf.get("regex_replace")
     if replaces:
         for regex_replace in replaces:
-            from_pattern = regex_replace['from']
-            to_pattern = regex_replace['to']
+            from_pattern = regex_replace["from"]
+            to_pattern = regex_replace["to"]
             if not from_pattern or not to_pattern:
                 continue
 
@@ -71,27 +71,27 @@ def __load_config_template(token: str, conf: dict) -> dict:
 
 
 def __render_config(config_template: dict, nodes: list[dict]) -> dict:
-    outbounds = config_template.get('outbounds', [])
+    outbounds = config_template.get("outbounds", [])
 
     for outbound in outbounds:
-        if outbound['type'] not in {'selector', 'urltest'}:
+        if outbound["type"] not in {"selector", "urltest"}:
             continue
 
-        group_outbounds = outbound['outbounds']
+        group_outbounds = outbound["outbounds"]
 
         new_group_outbounds = []
         for tag in group_outbounds:
             tag = tag.strip()
-            if tag.startswith('{') and tag.endswith('}'):
+            if tag.startswith("{") and tag.endswith("}"):
                 # filter nodes
                 pattern = tag[1:-1]
                 for node in nodes:
-                    if re.search(pattern, node['tag']):
-                        new_group_outbounds.append(node['tag'])
+                    if re.search(pattern, node["tag"]):
+                        new_group_outbounds.append(node["tag"])
             else:
                 new_group_outbounds.append(tag)
 
-        outbound['outbounds'] = new_group_outbounds
+        outbound["outbounds"] = new_group_outbounds
 
     outbounds.extend(nodes)
     return config_template
